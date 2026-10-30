@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClickPizza - Delivery de Pizzas</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        fire: { 500: '#f43f5e', 600: '#e11d48', 700: '#be123c' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .drag-scroll { cursor: grab; user-select: none; }
+        .drag-scroll:active { cursor: grabbing; }
+        html { scroll-behavior: smooth; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans min-h-screen pb-28">
+
+    <!-- CABEÇALHO HERO -->
+    <header class="relative bg-cover bg-center h-64 md:h-80 shadow-2xl" style="background-image: url('IMAGEM.jpg');">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40"></div>
+        
+        <div class="relative max-w-5xl mx-auto px-4 h-full flex flex-col justify-between py-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <img src="logo.jpg" onerror="this.src='https://placehold.co/100x100/e11d48/ffffff?text=ClickPizza'" alt="Logo" class="w-14 h-14 md:w-16 md:h-16 rounded-full border-2 border-amber-400 object-cover shadow-lg">
+                    <div>
+                        <h1 class="text-2xl md:text-3xl font-black tracking-wider text-white flex items-center gap-2">
+                            CLICK<span class="text-rose-600">PIZZA</span> <i class="fa-solid font-bold fa-fire text-amber-400"></i>
+                        </h1>
+                        <p class="text-xs text-amber-400 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Aberto agora • 30-45 min
+                        </p>
+                    </div>
+                </div>
+
+                <button onclick="carregarUltimoPedido()" class="hidden sm:flex items-center gap-2 bg-slate-800/90 hover:bg-slate-700 text-amber-400 border border-amber-400/30 px-3 py-2 rounded-xl text-xs font-semibold transition shadow-md backdrop-blur-md">
+                    <i class="fa-solid fa-rotate-left"></i> Recompra Rápida
+                </button>
+            </div>
+
+            <div class="bg-gradient-to-r from-rose-600/90 to-amber-500/90 backdrop-blur-md p-3 md:p-4 rounded-2xl flex items-center justify-between border border-white/10 shadow-xl mt-4">
+                <div class="flex items-center gap-3">
+                    <img src="logo.jpg" onerror="this.src='https://placehold.co/80x80/ffffff/e11d48?text=Promo'" class="w-12 h-12 rounded-xl object-cover border border-white/20 hidden xs:block">
+                    <div>
+                        <span class="bg-amber-400 text-slate-900 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full">Oferta do Dia</span>
+                        <h3 class="font-bold text-white text-sm md:text-base">Monte sua Pizza Especial de até 3 Sabores!</h3>
+                    </div>
+                </div>
+                <button onclick="abrirModalPizza()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs md:text-sm font-bold px-4 py-2 rounded-xl transition shadow-lg shrink-0">
+                    Montar Agora <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <main class="max-w-5xl mx-auto px-4 mt-6">
+        
+        <div class="sm:hidden mb-4">
+            <button onclick="carregarUltimoPedido()" class="w-full flex items-center justify-center gap-2 bg-slate-800/90 text-amber-400 border border-amber-400/30 py-2.5 rounded-xl text-xs font-semibold">
+                <i class="fa-solid fa-rotate-left"></i> Repetir Último Pedido Guardado
+            </button>
+        </div>
+
+        <!-- BARRA DE CATEGORIAS DESLIZANTE -->
+        <section class="mb-6">
+            <div id="categoryContainer" class="drag-scroll flex gap-3 overflow-x-auto hide-scrollbar py-2 px-1">
+                <button onclick="filtrarCategoria('todas')" class="cat-btn active bg-rose-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-utensils"></i> Todas
+                </button>
+                <button onclick="filtrarCategoria('tradicional')" class="cat-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap border border-slate-700/50 transition flex items-center gap-2">
+                    <i class="fa-solid fa-pizza-slice text-amber-400"></i> Tradicionais
+                </button>
+                <button onclick="filtrarCategoria('especial')" class="cat-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap border border-slate-700/50 transition flex items-center gap-2">
+                    <i class="fa-solid fa-crown text-amber-400"></i> Especiais
+                </button>
+                <button onclick="filtrarCategoria('doce')" class="cat-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap border border-slate-700/50 transition flex items-center gap-2">
+                    <i class="fa-solid fa-cookie-bite text-rose-400"></i> Doces
+                </button>
+                <button onclick="filtrarCategoria('bebida')" class="cat-btn bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap border border-slate-700/50 transition flex items-center gap-2">
+                    <i class="fa-solid fa-bottle-water text-emerald-400"></i> Bebidas
+                </button>
+            </div>
+        </section>
+
+        <!-- CARROSSEL DE DESTAQUES -->
+        <section class="mb-10">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-fire-flame-curved text-rose-500"></i> Mais Pedidas da Casa
+                </h3>
+                <span class="text-[11px] text-slate-400">Deslize para ver mais ➔</span>
+            </div>
+            <div id="carouselDestaques" class="drag-scroll flex gap-4 overflow-x-auto hide-scrollbar py-2 px-1"></div>
+        </section>
+
+        <!-- LISTA DE PRODUTOS / CARDÁPIO COMPLETO -->
+        <section id="cardapioCompleto" class="mb-12 scroll-mt-6">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-utensils text-rose-500"></i> Cardápio Completo
+            </h3>
+            <div id="gridProdutos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- FORMULÁRIO DE SEU PEDIDO / CHECKOUT -->
+        <section id="checkoutSection" class="bg-slate-800/90 border border-slate-700/60 rounded-3xl p-6 md:p-8 shadow-2xl backdrop-blur-sm">
+            <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2 border-b border-slate-700 pb-4">
+                <i class="fa-solid fa-truck-fast text-amber-400"></i> Dados de Entrega & Pagamento
+            </h3>
+
+            <form id="formCheckout" onsubmit="validarEFinalizarPedido(event)" class="space-y-6">
+                
+                <div class="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-700/40 space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <h4 class="font-bold text-emerald-400 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot"></i> Endereço de Entrega
+                        </h4>
+                        <button type="button" onclick="obterLocalizacaoGPS()" id="btnGps" class="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/30 font-semibold px-4 py-2 rounded-xl text-xs flex items-center justify-center gap-2 transition shadow-md">
+                            <i class="fa-solid fa-crosshairs text-emerald-400 animate-pulse"></i> Usar minha localização atual (GPS)
+                        </button>
+                    </div>
+
+                    <div id="gpsStatus" class="hidden text-xs text-slate-400 bg-slate-800/80 p-2.5 rounded-lg border border-slate-700 flex items-center gap-2">
+                        <i class="fa-solid fa-circle-notch fa-spin text-amber-400" id="gpsSpinner"></i>
+                        <span id="gpsMessage">Buscando coordenadas e endereço...</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Rua / Avenida *</label>
+                            <input type="text" id="cliRua" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Av. Paulista">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Número *</label>
+                            <input type="text" id="cliNumero" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Ex: 1500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Bairro *</label>
+                            <input type="text" id="cliBairro" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Centro">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Complemento / Ponto de Referência</label>
+                            <input type="text" id="cliComplemento" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Apto 42, Bloco B">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="cliLat">
+                    <input type="hidden" id="cliLng">
+                </div>
+
+                <div class="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-700/40 space-y-4">
+                    <h4 class="font-bold text-amber-400 text-base flex items-center gap-2">
+                        <i class="fa-solid fa-user"></i> Contato do Cliente
+                    </h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nome Completo *</label>
+                            <input type="text" id="cliNome" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Seu nome">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Telefone / WhatsApp *</label>
+                            <input type="tel" id="cliTelefone" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="(00) 00000-0000">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/60 p-4 md:p-6 rounded-2xl border border-slate-700/40 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-white text-base flex items-center gap-2">
+                            <i class="fa-solid fa-credit-card text-rose-500"></i> Forma de Pagamento
+                        </h4>
+                        <label class="inline-flex items-center gap-2 cursor-pointer text-xs text-amber-400 font-semibold bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-400/30">
+                            <input type="checkbox" id="chkSplit" onchange="toggleSplitPagamento()" class="rounded accent-rose-500 w-4 h-4">
+                            Dividir Pagamento (Split 2 Formas)
+                        </label>
+                    </div>
+
+                    <div id="pagamentoUnicoContainer" class="space-y-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="formaPagamento" value="PIX" checked onchange="atualizarOpcoesTroco()" class="peer hidden">
+                                <div class="p-3 text-center rounded-xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 transition">
+                                    <span class="text-xs font-bold">PIX</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="formaPagamento" value="Cartão" onchange="atualizarOpcoesTroco()" class="peer hidden">
+                                <div class="p-3 text-center rounded-xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 transition">
+                                    <span class="text-xs font-bold">Cartão</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="formaPagamento" value="Dinheiro" onchange="atualizarOpcoesTroco()" class="peer hidden">
+                                <div class="p-3 text-center rounded-xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 peer-checked:text-rose-400 transition">
+                                    <span class="text-xs font-bold">Dinheiro</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div id="boxTroco" class="hidden bg-slate-800/80 p-3.5 rounded-xl border border-slate-700">
+                            <label class="block text-xs font-medium text-slate-300 mb-1">Troco para quanto?</label>
+                            <div class="flex items-center gap-3">
+                                <span class="text-slate-400 font-bold">R$</span>
+                                <input type="number" id="valorTroco" step="0.5" oninput="calcularTrocoTempoReal()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-rose-500" placeholder="Ex: 50.00">
+                            </div>
+                            <p id="resTroco" class="text-xs font-bold text-emerald-400 mt-2">Troco: R$ 0,00</p>
+                        </div>
+                    </div>
+
+                    <div id="pagamentoSplitContainer" class="hidden bg-slate-800/80 p-4 rounded-xl border border-amber-500/30 space-y-4">
+                        <p class="text-xs text-amber-300 font-medium">Defina como vai dividir a conta entre duas formas:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                                <span class="text-xs font-bold text-slate-400 block mb-2">Parte 1</span>
+                                <select id="splitTipo1" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                                    <option value="PIX">PIX</option><option value="Cartão">Cartão</option><option value="Dinheiro">Dinheiro</option>
+                                </select>
+                                <input type="number" id="splitValor1" step="0.5" oninput="ajustarValoresSplit(1)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" placeholder="Valor R$">
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-lg border border-slate-700">
+                                <span class="text-xs font-bold text-slate-400 block mb-2">Parte 2</span>
+                                <select id="splitTipo2" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white mb-2">
+                                    <option value="Cartão" selected>Cartão</option><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option>
+                                </select>
+                                <input type="number" id="splitValor2" step="0.5" oninput="ajustarValoresSplit(2)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white" placeholder="Valor R$">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-2xl"></i> Finalizar Pedido no WhatsApp
+                </button>
+            </form>
+        </section>
+
+    </main>
+
+    <!-- BARRA FIXA INFERIOR DO CARRINHO -->
+    <div id="checkoutBar" class="fixed bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-800 backdrop-blur-md z-40 p-4 shadow-2xl">
+        <div class="max-w-5xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <button onclick="toggleCarrinhoModal()" class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center shadow-lg hover:bg-rose-700 transition">
+                        <i class="fa-solid fa-basket-shopping text-xl"></i>
+                    </button>
+                    <span id="cartCount" class="absolute -top-2 -right-2 bg-amber-400 text-slate-950 font-bold text-xs w-6 h-6 rounded-full flex items-center justify-center border-2 border-slate-900">0</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium">Total do Pedido</span>
+                    <span id="cartTotal" class="text-xl font-black text-white">R$ 0,00</span>
+                </div>
+            </div>
+
+            <button onclick="scrollToCheckout()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold px-6 py-3 rounded-xl transition shadow-lg text-sm flex items-center gap-2">
+                Avançar <i class="fa-solid fa-chevron-right text-xs"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL DO CONSTRUTOR DE PIZZA -->
+    <div id="modalPizza" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-rose-500"></i> Construtor de Pizza
+                    </h3>
+                    <p class="text-xs text-slate-400">Monte sua pizza em 4 etapas simples</p>
+                </div>
+                <button onclick="fecharModalPizza()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="bg-slate-800/50 px-6 py-3 border-b border-slate-800 flex justify-between text-xs font-semibold text-slate-400">
+                <span id="stepTab1" class="text-rose-500 font-bold">1. Tamanho</span>
+                <span id="stepTab2">2. Bordas</span>
+                <span id="stepTab3">3. Sabores</span>
+                <span id="stepTab4">4. Obss</span>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-1 space-y-6">
+                <!-- ETAPA 1 -->
+                <div id="step1" class="space-y-4">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Escolha o Tamanho:</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="builderTamanho" value="Média" onchange="selecionarTamanho('Média', 6)" class="peer hidden">
+                            <div class="p-4 rounded-2xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition text-center">
+                                <i class="fa-solid fa-pizza-slice text-2xl text-amber-400 mb-2"></i>
+                                <h5 class="font-bold text-white text-sm">Média (6 Fatias)</h5>
+                                <p class="text-xs text-slate-400">Até 2 sabores</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="builderTamanho" value="Grande" checked onchange="selecionarTamanho('Grande', 8)" class="peer hidden">
+                            <div class="p-4 rounded-2xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition text-center">
+                                <i class="fa-solid fa-pizza-slice text-3xl text-amber-400 mb-2"></i>
+                                <h5 class="font-bold text-white text-sm">Grande (8 Fatias)</h5>
+                                <p class="text-xs text-slate-400">Até 3 sabores</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="builderTamanho" value="Gigante" onchange="selecionarTamanho('Gigante', 12)" class="peer hidden">
+                            <div class="p-4 rounded-2xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition text-center">
+                                <i class="fa-solid fa-pizza-slice text-4xl text-amber-400 mb-2"></i>
+                                <h5 class="font-bold text-white text-sm">Gigante (12 Fatias)</h5>
+                                <p class="text-xs text-slate-400">Até 3 sabores</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ETAPA 2 -->
+                <div id="step2" class="hidden space-y-4">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Escolha a Borda Recheada:</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="listaBordas"></div>
+                </div>
+
+                <!-- ETAPA 3 -->
+                <div id="step3" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 id="tituloSaboresEtapa" class="text-sm font-bold text-white uppercase tracking-wider">Escolha a Quantidade de Sabores:</h4>
+                        <span class="text-xs text-amber-400 font-medium bg-amber-400/10 px-2.5 py-1 rounded-full border border-amber-400/20">Preço final = Sabor mais caro</span>
+                    </div>
+
+                    <div class="flex gap-2 mb-4">
+                        <button type="button" onclick="setQtdSabores(1)" id="btn1Sabor" class="flex-1 py-2 rounded-xl text-xs font-bold border border-rose-500 bg-rose-500 text-white shadow">1 Sabor (Inteira)</button>
+                        <button type="button" onclick="setQtdSabores(2)" id="btn2Sabores" class="flex-1 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300">2 Sabores</button>
+                        <button type="button" onclick="setQtdSabores(3)" id="btn3Sabores" class="flex-1 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300">3 Sabores</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1" id="listaSaboresBuilder"></div>
+                </div>
+
+                <!-- ETAPA 4 -->
+                <div id="step4" class="hidden space-y-4">
+                    <h4 class="text-sm font-bold text-white uppercase tracking-wider">Observações por Sabor / Geral:</h4>
+                    
+                    <div id="obsSabor1Box">
+                        <label id="lblObs1" class="block text-xs font-semibold text-slate-300 mb-1">Observações para o 1º Sabor:</label>
+                        <input type="text" id="obsSabor1" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Sem cebola">
+                    </div>
+
+                    <div id="obsSabor2Box" class="hidden">
+                        <label id="lblObs2" class="block text-xs font-semibold text-slate-300 mb-1">Observações para o 2º Sabor:</label>
+                        <input type="text" id="obsSabor2" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Caprichar no orégano">
+                    </div>
+
+                    <div id="obsSabor3Box" class="hidden">
+                        <label id="lblObs3" class="block text-xs font-semibold text-slate-300 mb-1">Observações para o 3º Sabor:</label>
+                        <input type="text" id="obsSabor3" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500" placeholder="Ex: Sem azeitona">
+                    </div>
+
+                    <div class="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-2 mt-4">
+                        <h5 class="text-xs font-bold text-amber-400 uppercase">Resumo da Pizza Personalizada</h5>
+                        <p id="builderResumoTexto" class="text-xs text-slate-300 leading-relaxed"></p>
+                        <p id="builderResumoPreco" class="text-lg font-black text-emerald-400 pt-2 border-t border-slate-700/50">Total: R$ 0,00</p>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="p-5 border-t border-slate-800 flex justify-between items-center bg-slate-900">
+                <button type="button" onclick="etapaAnterior()" id="btnPrevStep" class="bg-slate-800 text-slate-300 hover:bg-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition hidden">
+                    <i class="fa-solid fa-chevron-left mr-1"></i> Voltar
+                </button>
+                <div class="ml-auto flex gap-2">
+                    <button type="button" onclick="proximaEtapa()" id="btnNextStep" class="bg-rose-600 hover:bg-rose-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition shadow-md">
+                        Próxima Etapa <i class="fa-solid fa-chevron-right ml-1"></i>
+                    </button>
+                    <button type="button" onclick="adicionarPizzaMontadaAoCarrinho()" id="btnAddBuilderCart" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black transition shadow-md hidden">
+                        <i class="fa-solid fa-plus mr-1"></i> Adicionar ao Carrinho
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL DO CARRINHO -->
+    <div id="modalCarrinho" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="p-5 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-basket-shopping text-rose-500"></i> Seu Carrinho
+                </h3>
+                <button onclick="toggleCarrinhoModal()" class="text-slate-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div id="itensCarrinhoModal" class="p-5 overflow-y-auto flex-1 space-y-3"></div>
+
+            <div class="p-5 border-t border-slate-800 bg-slate-900/90 space-y-3">
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Subtotal</span>
+                    <span id="modalSubtotal" class="font-bold text-white">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Taxa de Entrega</span>
+                    <span class="font-bold text-emerald-400">Grátis</span>
+                </div>
+                <div class="flex justify-between items-center text-lg font-black text-white pt-2 border-t border-slate-800">
+                    <span>Total</span>
+                    <span id="modalTotal" class="text-emerald-400">R$ 0,00</span>
+                </div>
+                <button onclick="toggleCarrinhoModal(); scrollToCheckout();" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-xl transition text-sm">
+                    Ir para o Pagamento
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL UPSELL BEBIDA -->
+    <div id="modalUpsellBebida" class="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-rose-500/40 rounded-3xl w-full max-w-sm p-6 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 bg-rose-500/20 border-2 border-rose-500 rounded-full flex items-center justify-center mx-auto text-rose-500 text-3xl">🥤</div>
+            <div class="space-y-2">
+                <h3 class="font-black text-white text-base">Faltou algo geladinho?</h3>
+                <p class="text-xs text-slate-300 leading-relaxed">Uma pizza quentinha sem bebida não tem o mesmo sabor! 🍕<br><span class="text-amber-400 font-bold">Gostaria de adicionar um refrigerante?</span></p>
+            </div>
+            <div class="space-y-2 pt-2">
+                <button onclick="irParaBebidas()" class="w-full bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold py-3 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow-lg">
+                    <i class="fa-solid fa-bottle-water"></i> Sim, escolher bebida!
+                </button>
+                <button onclick="confirmarEnvioSemBebida()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-2.5 rounded-xl transition text-xs border border-slate-700">
+                    Não, continuar só com a pizza
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 bg-slate-800 border border-emerald-500/40 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
+        <span id="toastMsg" class="text-xs font-semibold">Item adicionado com sucesso!</span>
+    </div>
+
+    <!-- JAVASCRIPT OTIMIZADO -->
+    <script>
+        const CARDAPIO_PIZZAS = [
+            { id: 1, nome: 'Calabresa Especial', cat: 'tradicional', desc: 'Calabresa fatiada, cebola roxa, azeitonas pretas e bastante muçarela.', preco: 45.00, img: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=500&q=80' },
+            { id: 2, nome: 'Quatro Queijos Premium', cat: 'especial', desc: 'Muçarela, catupiry original, gorgonzola e provolone com orégano.', preco: 52.00, img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500&q=80' },
+            { id: 3, nome: 'Frango com Catupiry', cat: 'tradicional', desc: 'Frango desfiado temperado, milho verde e autêntico Catupiry.', preco: 48.00, img: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&q=80' },
+            { id: 4, nome: 'Margherita Suprema', cat: 'tradicional', desc: 'Molho artesanal de tomate, muçarela de búfala, manjericão fresco e tomate.', preco: 46.00, img: 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=500&q=80' },
+            { id: 5, nome: 'Nutella com Morango', cat: 'doce', desc: 'Creme de Nutella original coberto com morangos frescos fatiados.', preco: 55.00, img: 'https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500&q=80' },
+            { id: 6, nome: 'Pepperoni Vulcão', cat: 'especial', desc: 'Lâminas de pepperoni crocrantes, muçarela dupla e pimenta calabresa.', preco: 54.00, img: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=500&q=80' }
+        ];
+
+        const BEBIDAS = [
+            { id: 101, nome: 'Coca-Cola 2L', cat: 'bebida', type: 'drink', desc: 'Garrafa refrigerante 2 Litros gelada.', preco: 14.00, img: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=500&q=80' },
+            { id: 102, nome: 'Guaraná Antarctica 2L', cat: 'bebida', type: 'drink', desc: 'Garrafa refrigerante 2 Litros trincando.', preco: 12.00, img: 'https://images.unsplash.com/photo-1543253687-c931c8e01820?w=500&q=80' },
+            { id: 103, nome: 'Suco Natural Laranja 1L', cat: 'bebida', type: 'drink', desc: 'Suco 100% natural sem conservantes.', preco: 15.00, img: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?w=500&q=80' }
+        ];
+
+        const BORDAS = [
+            { id: 'borda-sem', nome: 'Sem Borda Recheada', preco: 0.00 },
+            { id: 'borda-catupiry', nome: 'Borda de Catupiry', preco: 8.00 },
+            { id: 'borda-cheddar', nome: 'Borda de Cheddar Melt', preco: 8.00 },
+            { id: 'borda-chocolate', nome: 'Borda de Chocolate', preco: 10.00 }
+        ];
+
+        let carrinho = [];
+        let etapaAtualBuilder = 1;
+        let builderConfig = {
+            tamanho: 'Grande',
+            fatias: 8,
+            borda: BORDAS[0],
+            qtdSabores: 1,
+            sabor1: CARDAPIO_PIZZAS[0],
+            sabor2: null,
+            sabor3: null,
+            obs1: '',
+            obs2: '',
+            obs3: ''
+        };
+
+        window.onload = function() {
+            renderizarDestaquesCarrossel();
+            renderizarProdutos('todas');
+            carregarDadosSalvosEndereco();
+            iniciarDragScroll();
+            preencherOpcoesBuilder();
+        };
+
+        function obterProximoNumeroPedido() {
+            let ultimoNumero = parseInt(localStorage.getItem('clickpizza_num_pedido') || '0', 10);
+            let proximoNumero = ultimoNumero + 1;
+            localStorage.setItem('clickpizza_num_pedido', proximoNumero.toString());
+            return proximoNumero.toString().padStart(5, '0');
+        }
+
+        function renderizarDestaquesCarrossel() {
+            const container = document.getElementById('carouselDestaques');
+            container.innerHTML = '';
+            CARDAPIO_PIZZAS.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'min-w-[220px] max-w-[220px] bg-slate-800/80 border border-slate-700/60 rounded-2xl overflow-hidden shadow-lg flex flex-col justify-between shrink-0';
+                card.innerHTML = `
+                    <div class="relative h-28 overflow-hidden">
+                        <img src="${prod.img}" alt="${prod.nome}" class="w-full h-full object-cover" loading="lazy">
+                        <span class="absolute top-2 right-2 bg-rose-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="p-3 flex flex-col justify-between space-y-2">
+                        <h4 class="font-bold text-white text-xs truncate">${prod.nome}</h4>
+                        <button onclick="adicionarSimplesCarrinho(${prod.id}, '${prod.cat}')" class="w-full bg-slate-700 hover:bg-rose-600 text-white font-semibold text-[11px] py-1.5 rounded-xl transition flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Pedir Rápido
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderizarProdutos(categoria) {
+            const container = document.getElementById('gridProdutos');
+            container.innerHTML = '';
+            const listaGeral = [...CARDAPIO_PIZZAS, ...BEBIDAS];
+            const filtrados = categoria === 'todas' ? listaGeral : listaGeral.filter(p => p.cat === categoria);
+
+            filtrados.forEach(prod => {
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800/80 border border-slate-700/60 rounded-3xl overflow-hidden shadow-lg flex flex-col justify-between';
+                card.innerHTML = `
+                    <div class="relative h-44 overflow-hidden">
+                        <img src="${prod.img}" alt="${prod.nome}" class="w-full h-full object-cover" loading="lazy">
+                        <span class="absolute top-3 right-3 bg-slate-900/80 backdrop-blur-md text-amber-400 text-xs font-bold px-3 py-1 rounded-full border border-slate-700">${prod.cat.toUpperCase()}</span>
+                    </div>
+                    <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                            <h4 class="font-bold text-white text-base">${prod.nome}</h4>
+                            <p class="text-xs text-slate-400 line-clamp-2 mt-1">${prod.desc}</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-lg font-black text-emerald-400">R$ ${prod.preco.toFixed(2).replace('.', ',')}</span>
+                            <button onclick="adicionarSimplesCarrinho(${prod.id}, '${prod.cat}')" class="bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // FILTRA A CATEGORIA E JÁ DESCE A TELA AUTOMATICAMENTE PARA O CARDÁPIO NO CELULAR
+        function filtrarCategoria(cat) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-rose-600', 'text-white', 'active');
+                btn.classList.add('bg-slate-800', 'text-slate-300');
+            });
+            event.currentTarget.classList.remove('bg-slate-800', 'text-slate-300');
+            event.currentTarget.classList.add('bg-rose-600', 'text-white', 'active');
+            
+            renderizarProdutos(cat);
+
+            // Desce suavemente a tela até a seção do cardápio completo
+            const cardapioSecao = document.getElementById('cardapioCompleto');
+            if (cardapioSecao) {
+                cardapioSecao.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function iniciarDragScroll() {
+            ['categoryContainer', 'carouselDestaques'].forEach(id => {
+                const slider = document.getElementById(id);
+                if(!slider) return;
+                let isDown = false, startX, scrollLeft;
+                slider.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - slider.offsetLeft; scrollLeft = slider.scrollLeft; });
+                slider.addEventListener('mouseleave', () => { isDown = false; });
+                slider.addEventListener('mouseup', () => { isDown = false; });
+                slider.addEventListener('mousemove', (e) => {
+                    if(!isDown) return;
+                    e.preventDefault();
+                    slider.scrollLeft = scrollLeft - ((e.pageX - slider.offsetLeft) - startX) * 2;
+                });
+            });
+        }
+
+        function adicionarSimplesCarrinho(id, cat) {
+            const lista = cat === 'bebida' ? BEBIDAS : CARDAPIO_PIZZAS;
+            const item = lista.find(p => p.id === id);
+            if (item) {
+                carrinho.push({
+                    idTemp: Date.now() + Math.random(),
+                    type: item.type || (cat === 'bebida' ? 'drink' : 'pizza'),
+                    nome: item.nome,
+                    detalhes: item.cat === 'bebida' ? 'Bebida 2L' : 'Tamanho Padrão Inteira',
+                    preco: item.preco,
+                    quantidade: 1
+                });
+                atualizarInterfaceCarrinho();
+                mostrarToast(`${item.nome} adicionado ao carrinho!`);
+            }
+        }
+
+        function atualizarInterfaceCarrinho() {
+            const countEl = document.getElementById('cartCount');
+            const totalEl = document.getElementById('cartTotal');
+            const modalSubtotal = document.getElementById('modalSubtotal');
+            const modalTotal = document.getElementById('modalTotal');
+            const modalContainer = document.getElementById('itensCarrinhoModal');
+            const checkoutBar = document.getElementById('checkoutBar');
+
+            const totalQtd = carrinho.reduce((sum, item) => sum + item.quantidade, 0);
+            const valorTotal = carrinho.reduce((sum, item) => sum + (item.preco * item.quantidade), 0);
+
+            countEl.innerText = totalQtd;
+            totalEl.innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+            modalSubtotal.innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+            modalTotal.innerText = `R$ ${valorTotal.toFixed(2).replace('.', ',')}`;
+
+            if (checkoutBar) {
+                if (carrinho.length === 0) checkoutBar.classList.add('hidden');
+                else if (document.getElementById('modalCarrinho').classList.contains('hidden')) checkoutBar.classList.remove('hidden');
+            }
+
+            modalContainer.innerHTML = '';
+            if (carrinho.length === 0) {
+                modalContainer.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">Seu carrinho está vazio.</p>';
+                return;
+            }
+
+            carrinho.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'bg-slate-800 p-3 rounded-xl border border-slate-700/60 flex items-center justify-between text-xs';
+                row.innerHTML = `
+                    <div class="pr-2">
+                        <h5 class="font-bold text-white">${item.nome}</h5>
+                        <p class="text-[11px] text-slate-400">${item.detalhes}</p>
+                        <span class="text-emerald-400 font-bold block mt-1">R$ ${(item.preco * item.quantidade).toFixed(2).replace('.', ',')}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="alterarQtdCarrinho(${index}, -1)" class="w-7 h-7 bg-slate-700 text-white rounded-lg font-bold">-</button>
+                        <span class="font-bold text-white w-4 text-center">${item.quantidade}</span>
+                        <button onclick="alterarQtdCarrinho(${index}, 1)" class="w-7 h-7 bg-slate-700 text-white rounded-lg font-bold">+</button>
+                    </div>
+                `;
+                modalContainer.appendChild(row);
+            });
+        }
+
+        function alterarQtdCarrinho(index, delta) {
+            carrinho[index].quantidade += delta;
+            if (carrinho[index].quantidade <= 0) carrinho.splice(index, 1);
+            atualizarInterfaceCarrinho();
+        }
+
+        function toggleCarrinhoModal() {
+            const modal = document.getElementById('modalCarrinho');
+            const checkoutBar = document.getElementById('checkoutBar');
+            modal.classList.toggle('hidden');
+            if (checkoutBar) {
+                if (!modal.classList.contains('hidden')) checkoutBar.classList.add('hidden');
+                else if (carrinho.length > 0) checkoutBar.classList.remove('hidden');
+            }
+        }
+
+        function abrirModalPizza() {
+            etapaAtualBuilder = 1;
+            atualizarEtapasBuilder();
+            document.getElementById('modalPizza').classList.remove('hidden');
+        }
+
+        function fecharModalPizza() {
+            document.getElementById('modalPizza').classList.add('hidden');
+        }
+
+        function preencherOpcoesBuilder() {
+            const containerBordas = document.getElementById('listaBordas');
+            containerBordas.innerHTML = '';
+            BORDAS.forEach((b, idx) => {
+                containerBordas.innerHTML += `
+                    <label class="cursor-pointer">
+                        <input type="radio" name="builderBorda" value="${b.id}" ${idx===0 ? 'checked':''} onchange="selecionarBorda('${b.id}')" class="peer hidden">
+                        <div class="p-3.5 rounded-xl bg-slate-800 border border-slate-700 peer-checked:border-rose-500 peer-checked:bg-rose-500/10 transition flex items-center justify-between">
+                            <span class="text-xs font-semibold text-white">${b.nome}</span>
+                            <span class="text-xs font-bold text-emerald-400">+ R$ ${b.preco.toFixed(2).replace('.',',')}</span>
+                        </div>
+                    </label>
+                `;
+            });
+            builderConfig.borda = BORDAS[0];
+            renderizarListaSaboresBuilder();
+        }
+
+        function renderizarListaSaboresBuilder() {
+            const containerSabores = document.getElementById('listaSaboresBuilder');
+            containerSabores.innerHTML = '';
+
+            CARDAPIO_PIZZAS.filter(p => p.cat !== 'bebida').forEach((p) => {
+                const isS1 = builderConfig.sabor1 && builderConfig.sabor1.id === p.id;
+                const isS2 = builderConfig.sabor2 && builderConfig.sabor2.id === p.id;
+                const isS3 = builderConfig.sabor3 && builderConfig.sabor3.id === p.id;
+
+                let botoesHTML = '';
+                if (builderConfig.qtdSabores === 1) {
+                    botoesHTML = `
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 1)" class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition ${isS1 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">
+                            ${isS1 ? '<i class="fa-solid fa-check mr-1"></i> Selecionado' : 'Escolher'}
+                        </button>
+                    `;
+                } else if (builderConfig.qtdSabores === 2) {
+                    botoesHTML = `
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 1)" class="px-2.5 py-1 rounded text-[10px] font-bold transition ${isS1 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">1º Sabor</button>
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 2)" class="px-2.5 py-1 rounded text-[10px] font-bold transition ${isS2 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">2º Sabor</button>
+                    `;
+                } else if (builderConfig.qtdSabores === 3) {
+                    botoesHTML = `
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 1)" class="px-2 py-1 rounded text-[10px] font-bold transition ${isS1 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">1º Sabor</button>
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 2)" class="px-2 py-1 rounded text-[10px] font-bold transition ${isS2 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">2º Sabor</button>
+                        <button type="button" onclick="selecionarSaborBuilder(${p.id}, 3)" class="px-2 py-1 rounded text-[10px] font-bold transition ${isS3 ? 'bg-emerald-500 text-slate-950 shadow-md ring-2 ring-emerald-400' : 'bg-slate-700 hover:bg-slate-600 text-white'}">3º Sabor</button>
+                    `;
+                }
+
+                containerSabores.innerHTML += `
+                    <div class="bg-slate-800 p-3 rounded-xl border ${isS1 || isS2 || isS3 ? 'border-rose-500 bg-rose-500/5' : 'border-slate-700'} flex items-center justify-between gap-2">
+                        <div>
+                            <h5 class="font-bold text-xs text-white">${p.nome}</h5>
+                            <span class="text-[11px] text-emerald-400 font-semibold">R$ ${p.preco.toFixed(2).replace('.',',')}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">${botoesHTML}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function selecionarTamanho(tam, fatias) {
+            builderConfig.tamanho = tam;
+            builderConfig.fatias = fatias;
+            const btn3 = document.getElementById('btn3Sabores');
+            if (tam === 'Média') {
+                btn3.classList.add('hidden');
+                if (builderConfig.qtdSabores === 3) setQtdSabores(2);
+            } else {
+                btn3.classList.remove('hidden');
+            }
+            atualizarResumoBuilder();
+        }
+
+        function selecionarBorda(bordaId) {
+            builderConfig.borda = BORDAS.find(b => b.id === bordaId);
+            atualizarResumoBuilder();
+        }
+
+        function setQtdSabores(qtd) {
+            builderConfig.qtdSabores = qtd;
+            const btn1 = document.getElementById('btn1Sabor');
+            const btn2 = document.getElementById('btn2Sabores');
+            const btn3 = document.getElementById('btn3Sabores');
+            const obs2Box = document.getElementById('obsSabor2Box');
+            const obs3Box = document.getElementById('obsSabor3Box');
+
+            [btn1, btn2, btn3].forEach(b => {
+                if(b) b.className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-slate-700 bg-slate-800 text-slate-300';
+            });
+
+            if (qtd === 1) {
+                btn1.className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-rose-500 bg-rose-500 text-white shadow';
+                obs2Box.classList.add('hidden');
+                obs3Box.classList.add('hidden');
+                builderConfig.sabor2 = null;
+                builderConfig.sabor3 = null;
+            } else if (qtd === 2) {
+                btn2.className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-rose-500 bg-rose-500 text-white shadow';
+                obs2Box.classList.remove('hidden');
+                obs3Box.classList.add('hidden');
+                builderConfig.sabor3 = null;
+                if(!builderConfig.sabor2) builderConfig.sabor2 = CARDAPIO_PIZZAS[1];
+            } else if (qtd === 3) {
+                btn3.className = 'flex-1 py-2 rounded-xl text-xs font-bold border border-rose-500 bg-rose-500 text-white shadow';
+                obs2Box.classList.remove('hidden');
+                obs3Box.classList.remove('hidden');
+                if(!builderConfig.sabor2) builderConfig.sabor2 = CARDAPIO_PIZZAS[1];
+                if(!builderConfig.sabor3) builderConfig.sabor3 = CARDAPIO_PIZZAS[2] || CARDAPIO_PIZZAS[0];
+            }
+
+            renderizarListaSaboresBuilder();
+            atualizarResumoBuilder();
+        }
+
+        function selecionarSaborBuilder(id, slot) {
+            const sabor = CARDAPIO_PIZZAS.find(p => p.id === id);
+            if (slot === 1) builderConfig.sabor1 = sabor;
+            if (slot === 2) builderConfig.sabor2 = sabor;
+            if (slot === 3) builderConfig.sabor3 = sabor;
+            renderizarListaSaboresBuilder();
+            atualizarResumoBuilder();
+        }
+
+        function atualizarEtapasBuilder() {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step${i}`).classList.add('hidden');
+                document.getElementById(`stepTab${i}`).className = 'text-slate-500';
+            }
+            document.getElementById(`step${etapaAtualBuilder}`).classList.remove('hidden');
+            document.getElementById(`stepTab${etapaAtualBuilder}`).className = 'text-rose-500 font-bold';
+
+            const btnPrev = document.getElementById('btnPrevStep');
+            const btnNext = document.getElementById('btnNextStep');
+            const btnAdd = document.getElementById('btnAddBuilderCart');
+
+            if (etapaAtualBuilder === 1) btnPrev.classList.add('hidden');
+            else btnPrev.classList.remove('hidden');
+
+            if (etapaAtualBuilder === 4) {
+                btnNext.classList.add('hidden');
+                btnAdd.classList.remove('hidden');
+                atualizarResumoBuilder();
+            } else {
+                btnNext.classList.remove('hidden');
+                btnAdd.classList.add('hidden');
+            }
+        }
+
+        function proximaEtapa() { if (etapaAtualBuilder < 4) { etapaAtualBuilder++; atualizarEtapasBuilder(); } }
+        function etapaAnterior() { if (etapaAtualBuilder > 1) { etapaAtualBuilder--; atualizarEtapasBuilder(); } }
+
+        function calcularPrecoBuilder() {
+            let precos = [builderConfig.sabor1 ? builderConfig.sabor1.preco : 0];
+            if (builderConfig.qtdSabores >= 2 && builderConfig.sabor2) precos.push(builderConfig.sabor2.preco);
+            if (builderConfig.qtdSabores === 3 && builderConfig.sabor3) precos.push(builderConfig.sabor3.preco);
+            return Math.max(...precos) + (builderConfig.borda ? builderConfig.borda.preco : 0);
+        }
+
+        function atualizarResumoBuilder() {
+            const txt = document.getElementById('builderResumoTexto');
+            const preco = document.getElementById('builderResumoPreco');
+            builderConfig.obs1 = document.getElementById('obsSabor1').value;
+            builderConfig.obs2 = document.getElementById('obsSabor2').value;
+            builderConfig.obs3 = document.getElementById('obsSabor3').value;
+
+            let resumo = `<strong>Pizza ${builderConfig.tamanho} (${builderConfig.fatias} fatias)</strong><br>`;
+            if (builderConfig.qtdSabores === 1) {
+                resumo += `Sabor: ${builderConfig.sabor1 ? builderConfig.sabor1.nome : '-'}`;
+                if (builderConfig.obs1) resumo += ` <em>(Obs: ${builderConfig.obs1})</em>`;
+            } else if (builderConfig.qtdSabores === 2) {
+                resumo += `1/2 ${builderConfig.sabor1 ? builderConfig.sabor1.nome : '-'}`;
+                if (builderConfig.obs1) resumo += ` <em>(${builderConfig.obs1})</em>`;
+                resumo += `<br>1/2 ${builderConfig.sabor2 ? builderConfig.sabor2.nome : '-'}`;
+                if (builderConfig.obs2) resumo += ` <em>(${builderConfig.obs2})</em>`;
+            } else {
+                resumo += `1/3 ${builderConfig.sabor1 ? builderConfig.sabor1.nome : '-'}`;
+                if (builderConfig.obs1) resumo += ` <em>(${builderConfig.obs1})</em>`;
+                resumo += `<br>1/3 ${builderConfig.sabor2 ? builderConfig.sabor2.nome : '-'}`;
+                if (builderConfig.obs2) resumo += ` <em>(${builderConfig.obs2})</em>`;
+                resumo += `<br>1/3 ${builderConfig.sabor3 ? builderConfig.sabor3.nome : '-'}`;
+                if (builderConfig.obs3) resumo += ` <em>(${builderConfig.obs3})</em>`;
+            }
+            resumo += `<br>Borda: ${builderConfig.borda.nome}`;
+            txt.innerHTML = resumo;
+            preco.innerText = `Total: R$ ${calcularPrecoBuilder().toFixed(2).replace('.', ',')}`;
+        }
+
+        function adicionarPizzaMontadaAoCarrinho() {
+            const precoFinal = calcularPrecoBuilder();
+            let nomeItem = `Pizza ${builderConfig.tamanho} `;
+            let descItem = '';
+
+            if (builderConfig.qtdSabores === 1) {
+                nomeItem += builderConfig.sabor1.nome;
+                if (builderConfig.obs1) descItem += `Obs: ${builderConfig.obs1}. `;
+            } else if (builderConfig.qtdSabores === 2) {
+                nomeItem += `1/2 ${builderConfig.sabor1.nome} + 1/2 ${builderConfig.sabor2.nome}`;
+                if (builderConfig.obs1) descItem += `Obs 1/2 (${builderConfig.sabor1.nome}): ${builderConfig.obs1}. `;
+                if (builderConfig.obs2) descItem += `Obs 1/2 (${builderConfig.sabor2.nome}): ${builderConfig.obs2}. `;
+            } else {
+                nomeItem += `1/3 ${builderConfig.sabor1.nome} + 1/3 ${builderConfig.sabor2.nome} + 1/3 ${builderConfig.sabor3.nome}`;
+                if (builderConfig.obs1) descItem += `Obs (${builderConfig.sabor1.nome}): ${builderConfig.obs1}. `;
+                if (builderConfig.obs2) descItem += `Obs (${builderConfig.sabor2.nome}): ${builderConfig.obs2}. `;
+                if (builderConfig.obs3) descItem += `Obs (${builderConfig.sabor3.nome}): ${builderConfig.obs3}. `;
+            }
+
+            if (builderConfig.borda.preco > 0) descItem += `[${builderConfig.borda.nome}]`;
+
+            carrinho.push({
+                idTemp: Date.now(), type: 'pizza', nome: nomeItem,
+                detalhes: descItem || 'Massa Tradicional Crocante',
+                preco: precoFinal, quantidade: 1
+            });
+
+            atualizarInterfaceCarrinho();
+            fecharModalPizza();
+            mostrarToast('Pizza personalizada adicionada!');
+        }
+
+        function obterLocalizacaoGPS() {
+            const statusBox = document.getElementById('gpsStatus');
+            const statusMsg = document.getElementById('gpsMessage');
+            if (!navigator.geolocation) { mostrarToast('Geolocalização não suportada.'); return; }
+            statusBox.classList.remove('hidden');
+            statusMsg.innerText = 'Obtendo GPS...';
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude, lng = pos.coords.longitude;
+                document.getElementById('cliLat').value = lat;
+                document.getElementById('cliLng').value = lng;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+                    const data = await res.json();
+                    if (data && data.address) {
+                        if (data.address.road) document.getElementById('cliRua').value = data.address.road;
+                        if (data.address.suburb) document.getElementById('cliBairro').value = data.address.suburb;
+                        if (data.address.house_number) document.getElementById('cliNumero').value = data.address.house_number;
+                        statusMsg.innerText = 'Endereço obtido com sucesso!';
+                    }
+                } catch(e) { statusMsg.innerText = 'Coordenadas salvas com sucesso!'; }
+                setTimeout(() => statusBox.classList.add('hidden'), 4000);
+            }, () => { statusBox.classList.add('hidden'); mostrarToast('Erro ao obter GPS.'); }, { enableHighAccuracy: true });
+        }
+
+        function atualizarOpcoesTroco() {
+            const forma = document.querySelector('input[name="formaPagamento"]:checked').value;
+            const boxTroco = document.getElementById('boxTroco');
+            if (forma === 'Dinheiro') { boxTroco.classList.remove('hidden'); calcularTrocoTempoReal(); }
+            else boxTroco.classList.add('hidden');
+        }
+
+        function calcularTrocoTempoReal() {
+            const total = carrinho.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
+            const pago = parseFloat(document.getElementById('valorTroco').value) || 0;
+            const res = document.getElementById('resTroco');
+            if (pago >= total) {
+                res.innerText = `Troco a levar: R$ ${(pago - total).toFixed(2).replace('.', ',')}`;
+                res.className = 'text-xs font-bold text-emerald-400 mt-2';
+            } else {
+                res.innerText = `Valor menor que o total (R$ ${total.toFixed(2).replace('.', ',')})`;
+                res.className = 'text-xs font-bold text-rose-400 mt-2';
+            }
+        }
+
+        function toggleSplitPagamento() {
+            const chk = document.getElementById('chkSplit');
+            const single = document.getElementById('pagamentoUnicoContainer');
+            const split = document.getElementById('pagamentoSplitContainer');
+            const total = carrinho.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
+            if (chk.checked) {
+                single.classList.add('hidden');
+                split.classList.remove('hidden');
+                document.getElementById('splitValor1').value = (total / 2).toFixed(2);
+                document.getElementById('splitValor2').value = (total / 2).toFixed(2);
+            } else {
+                single.classList.remove('hidden');
+                split.classList.add('hidden');
+            }
+        }
+
+        function ajustarValoresSplit(editado) {
+            const total = carrinho.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
+            const v1 = document.getElementById('splitValor1'), v2 = document.getElementById('splitValor2');
+            if (editado === 1) v2.value = Math.max(0, total - (parseFloat(v1.value) || 0)).toFixed(2);
+            else v1.value = Math.max(0, total - (parseFloat(v2.value) || 0)).toFixed(2);
+        }
+
+        function carregarDadosSalvosEndereco() {
+            const d = JSON.parse(localStorage.getItem('clickpizza_cliente') || '{}');
+            if (d.nome) document.getElementById('cliNome').value = d.nome;
+            if (d.telefone) document.getElementById('cliTelefone').value = d.telefone;
+            if (d.rua) document.getElementById('cliRua').value = d.rua;
+            if (d.numero) document.getElementById('cliNumero').value = d.numero;
+            if (d.bairro) document.getElementById('cliBairro').value = d.bairro;
+            if (d.complemento) document.getElementById('cliComplemento').value = d.complemento;
+        }
+
+        function carregarUltimoPedido() {
+            const ult = JSON.parse(localStorage.getItem('clickpizza_ultimo_pedido') || '[]');
+            if (ult.length > 0) {
+                carrinho = ult;
+                atualizarInterfaceCarrinho();
+                mostrarToast('Último pedido recarregado!');
+                scrollToCheckout();
+            } else {
+                mostrarToast('Nenhum pedido anterior encontrado.');
+            }
+        }
+
+        function validarEFinalizarPedido(e) {
+            e.preventDefault();
+            if (carrinho.length === 0) { mostrarToast('Carrinho vazio.'); return; }
+            if (!document.getElementById('cliNome').value || !document.getElementById('cliTelefone').value || !document.getElementById('cliRua').value || !document.getElementById('cliNumero').value) {
+                mostrarToast('Preencha os campos obrigatórios de endereço e contato.');
+                return;
+            }
+            if (carrinho.some(i => i.type === 'pizza') && !carrinho.some(i => i.type === 'drink')) {
+                document.getElementById('modalUpsellBebida').classList.remove('hidden');
+            } else {
+                executarEnvioWhatsApp();
+            }
+        }
+
+        function irParaBebidas() {
+            document.getElementById('modalUpsellBebida').classList.add('hidden');
+            filtrarCategoria('bebida');
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+
+        function confirmarEnvioSemBebida() {
+            document.getElementById('modalUpsellBebida').classList.add('hidden');
+            executarEnvioWhatsApp();
+        }
+
+        function executarEnvioWhatsApp() {
+            const nome = document.getElementById('cliNome').value;
+            const tel = document.getElementById('cliTelefone').value;
+            const rua = document.getElementById('cliRua').value;
+            const num = document.getElementById('cliNumero').value;
+            const bairro = document.getElementById('cliBairro').value;
+            const comp = document.getElementById('cliComplemento').value;
+            const lat = document.getElementById('cliLat').value, lng = document.getElementById('cliLng').value;
+            const numPed = obterProximoNumeroPedido();
+
+            localStorage.setItem('clickpizza_cliente', JSON.stringify({ nome, telefone: tel, rua, numero: num, bairro, complemento: comp }));
+            localStorage.setItem('clickpizza_ultimo_pedido', JSON.stringify(carrinho));
+
+            const total = carrinho.reduce((sum, i) => sum + (i.preco * i.quantidade), 0);
+            let infoPag = '';
+            if (document.getElementById('chkSplit').checked) {
+                infoPag = `*SPLIT:* R$ ${document.getElementById('splitValor1').value} (${document.getElementById('splitTipo1').value}) + R$ ${document.getElementById('splitValor2').value} (${document.getElementById('splitTipo2').value})`;
+            } else {
+                const forma = document.querySelector('input[name="formaPagamento"]:checked').value;
+                infoPag = `*PAGAMENTO:* ${forma}`;
+                if (forma === 'Dinheiro') {
+                    const pago = parseFloat(document.getElementById('valorTroco').value) || 0;
+                    if (pago > total) infoPag += ` (Troco para R$ ${pago.toFixed(2)})`;
+                }
+            }
+
+            let itensTxt = '';
+            carrinho.forEach((i, idx) => { itensTxt += `${idx+1}. *${i.quantidade}x ${i.nome}*\n   _${i.detalhes}_\n   R$ ${(i.preco * i.quantidade).toFixed(2)}\n\n`; });
+            let gpsTxt = lat && lng ? `\n📍 *GPS:* https://maps.google.com/?q=${lat},${lng}\n` : '';
+
+            const msg = `🚨 *PEDIDO #${numPed} - CLICKPIZZA* 🚨\n----------------------------------\n*CLIENTE:* ${nome}\n*FONE:* ${tel}\n\n📍 *ENDEREÇO:* ${rua}, Nº ${num} - ${bairro}\n${comp ? 'Comp: '+comp : ''}${gpsTxt}\n----------------------------------\n🍕 *ITENS:*\n\n${itensTxt}----------------------------------\n💰 *TOTAL:* R$ ${total.toFixed(2).replace('.', ',')}\n${infoPag}\n----------------------------------`;
+            window.open(`https://api.whatsapp.com/send?phone=5589999712647&text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function scrollToCheckout() { document.getElementById('checkoutSection').scrollIntoView({ behavior: 'smooth' }); }
+        function mostrarToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.remove('translate-x-full');
+            setTimeout(() => t.classList.add('translate-x-full'), 3000);
+        }
+    </script>
+</body>
+</html>
